@@ -1,4 +1,4 @@
-# ScadenzaChef — guida per Claude
+# easyfinds.it — guida per Claude
 
 PWA mobile-first per il magazzino di un ristorante: cosa c'è, dove e fino a quando; meno sprechi da scadenza.
 Il nome è **provvisorio**: vive solo in `src/config/app.ts` (`APP_NAME`).
@@ -77,8 +77,8 @@ A fine di ogni fase: lint + typecheck + test devono passare, poi avvio e verific
 - Ogni nuova funzione che legge o scrive dati deve avere il suo ramo demo, oppure dire chiaramente che non è disponibile in demo.
 
 ## Vetrina statica su GitHub Pages
-- **Sito**: https://ial-startup-2026.github.io/SCADENZACHEF/ (repo `ial-startup-2026/SCADENZACHEF`, pubblico solo perché il piano gratuito di GitHub non offre Pages sui privati). È una **vetrina dimostrativa**: dati di prova nel browser, nessun account, nessun salvataggio. L'app completa ha bisogno di un server (Server Action, proxy, login) e non può stare su Pages: per l'app vera serve Vercel/Cloudflare + Supabase.
-- Come funziona: `npm run build:vetrina` = `VETRINA=1 next build` con `output: "export"`, `basePath: "/SCADENZACHEF"` e **`pageExtensions: ["vetrina.tsx"]`**: in quella build Next vede solo i file `*.vetrina.tsx` (`app/layout.vetrina.tsx`, `app/(vetrina)/…`, `app/scansiona/page.vetrina.tsx`) e ignora tutto il resto (login, proxy, route handler, azioni). In modalità normale quei file sono ignorati. Il type-check della build vetrina è disattivato: si fa prima con `npm run typecheck`.
+- **Sito**: https://ial-startup-2026.github.io/easyfinds.it/ (repo `ial-startup-2026/easyfinds.it`, pubblico solo perché il piano gratuito di GitHub non offre Pages sui privati). È una **vetrina dimostrativa**: dati di prova nel browser, nessun account, nessun salvataggio. L'app completa ha bisogno di un server (Server Action, proxy, login) e non può stare su Pages: per l'app vera serve Vercel/Cloudflare + Supabase.
+- Come funziona: `npm run build:vetrina` = `VETRINA=1 next build` con `output: "export"`, `basePath: "/easyfinds.it"` e **`pageExtensions: ["vetrina.tsx"]`**: in quella build Next vede solo i file `*.vetrina.tsx` (`app/layout.vetrina.tsx`, `app/(vetrina)/…`, `app/scansiona/page.vetrina.tsx`) e ignora tutto il resto (login, proxy, route handler, azioni). In modalità normale quei file sono ignorati. Il type-check della build vetrina è disattivato: si fa prima con `npm run typecheck`.
 - Le pagine della vetrina riusano i componenti veri; il catalogo usa `CatalogoDemo` (azioni finte nel browser). **La data va presa dal browser** (`components/vetrina/adesso.ts`), perché le pagine statiche vengono costruite una volta sola.
 - Pubblicazione: `.github/workflows/pages.yml` (a ogni push su `main`: `typegen`, lint, typecheck, test, build vetrina, deploy). Se la build vetrina gira in locale va fermato `next dev` e poi rilanciato `npx next typegen` per ripristinare i tipi.
 - Ogni nuova schermata che deve comparire nella vetrina ha bisogno del suo `page.vetrina.tsx`. Il `README.md` (pubblico) va tenuto aggiornato allo stato delle fasi.
@@ -108,7 +108,7 @@ A fine di ogni fase: lint + typecheck + test devono passare, poi avvio e verific
 ## Decisioni prese
 | Fase | Decisione |
 |---|---|
-| 1 | Progetto in sottocartella `ScadenzaChef/` perché la cartella madre contiene altri lavori. Il pacchetto npm si chiama `scadenzachef` (npm vieta le maiuscole). |
+| 1 | Progetto in sottocartella `easyfinds.it/` perché la cartella madre contiene altri lavori. Il pacchetto npm si chiama `easyfinds` (npm vieta le maiuscole). |
 | 1 | npm al posto di pnpm (pnpm non installato). Docker assente → niente Supabase locale: si userà un progetto Supabase cloud. |
 | 1 | `@vitejs/plugin-react` non installato (conflitto di peer dependency con babel/shadcn e non serve: Vitest compila il JSX con esbuild). |
 | 1 | `@types/node` portato a ^24 (richiesto da Vitest, coerente con Node 24). |

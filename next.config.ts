@@ -19,7 +19,7 @@ const nextConfig: NextConfig = {
   },
   ...(vetrina && {
     output: "export",
-    basePath: "/SCADENZACHEF",
+    basePath: "/easyfinds.it",
     trailingSlash: true,
     images: { unoptimized: true },
     pageExtensions: ["vetrina.tsx"],

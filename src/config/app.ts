@@ -1,5 +1,5 @@
 /** Configurazione dell'app. Il nome è provvisorio: cambia solo qui. */
-export const APP_NAME = "ScadenzaChef";
+export const APP_NAME = "easyfinds.it";
 export const APP_DESCRIPTION =
   "Il magazzino della tua cucina: cosa c'è, dove e fino a quando.";
 

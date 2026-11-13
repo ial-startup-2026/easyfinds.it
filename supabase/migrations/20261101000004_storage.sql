@@ -1,4 +1,4 @@
--- ScadenzaChef — Storage (solo Supabase: usa lo schema `storage`).
+-- easyfinds.it — Storage (solo Supabase: usa lo schema `storage`).
 -- Bucket privati. Percorso: <locale_id>/<nome file>, così le policy isolano i locali.
 --   etichette  → foto delle etichette (max 5 MB, solo immagini)
 --   avatar     → foto profilo: un solo file per utente, <locale_id>/<utente_id>.jpg (max 1 MB)

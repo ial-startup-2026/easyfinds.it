@@ -1,4 +1,4 @@
-# ScadenzaChef
+# easyfinds.it
 
 App web (PWA) per il magazzino di una cucina professionale: **cosa c'è, dove e fino a quando**, per ridurre
 disorganizzazione e sprechi. Pensata per usarsi in piedi, con una mano, anche con rete instabile.
@@ -7,7 +7,7 @@ disorganizzazione e sprechi. Pensata per usarsi in piedi, con una mano, anche co
 
 ## Vetrina online
 
-**https://ial-startup-2026.github.io/SCADENZACHEF/**: versione dimostrativa con dati di prova, senza account,
+**https://ial-startup-2026.github.io/easyfinds.it/**: versione dimostrativa con dati di prova, senza account,
 le modifiche non vengono salvate. L'app completa ha bisogno di un server e non può stare su GitHub Pages.
 
 ## Cosa fa (stato del lavoro)

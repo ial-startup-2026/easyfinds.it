@@ -4,7 +4,7 @@ import type { Locale, Profilo } from "@/lib/supabase/tipi";
 import type { Registro } from "./operazioni";
 import { prodottiDemo } from "./prodotti";
 
-export const UTENTE_DEMO = { id: "11111111-1111-4111-8111-111111111111", email: "demo@scadenzachef.test" };
+export const UTENTE_DEMO = { id: "11111111-1111-4111-8111-111111111111", email: "demo@easyfinds.test" };
 export const LOCALE_DEMO: Locale = { id: "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa", nome: "Trattoria Demo" };
 
 export type ArchivioDemo = Registro & {
@@ -25,11 +25,11 @@ const crea = (): ArchivioDemo => ({
 });
 
 // Sopravvive alle ricompilazioni a caldo del server di sviluppo.
-const globale = globalThis as typeof globalThis & { __scadenzachefDemo?: ArchivioDemo };
+const globale = globalThis as typeof globalThis & { __easyfindsDemo?: ArchivioDemo };
 
 /** Dati di prova condivisi da tutte le richieste finché il server di sviluppo resta acceso. */
 export function archivioDemo(): ArchivioDemo {
-  return (globale.__scadenzachefDemo ??= crea());
+  return (globale.__easyfindsDemo ??= crea());
 }
 
 /** Il "me stesso" della modalità demo: il primo membro (Admin). */

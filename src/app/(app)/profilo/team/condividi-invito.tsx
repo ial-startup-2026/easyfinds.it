@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 type Props = { codice: string; link: string; nomeLocale: string };
 
 export function CondividiInvito({ codice, link, nomeLocale }: Props) {
-  const messaggio = `Entra in ${nomeLocale} su ScadenzaChef: apri ${link} (codice ${codice})`;
+  const messaggio = `Entra in ${nomeLocale} su easyfinds.it: apri ${link} (codice ${codice})`;
 
   async function copia(testo: string, conferma: string) {
     try {

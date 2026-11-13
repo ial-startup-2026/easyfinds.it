@@ -1,7 +1,7 @@
--- ScadenzaChef — dati di esempio per provare l'app senza scansionare nulla.
+-- easyfinds.it — dati di esempio per provare l'app senza scansionare nulla.
 --
 -- ⚠ SOLO PER SVILUPPO E DEMO. Crea due utenti con una password nota (vedi README):
---   chef@demo.scadenzachef.test   (Admin)      staff@demo.scadenzachef.test   (Staff)
+--   chef@demo.easyfinds.test   (Admin)      staff@demo.easyfinds.test   (Staff)
 --   password: Demo-Cucina-2026        codice d'invito del locale demo: TRATT2
 -- Non eseguirlo su un database con dati veri.
 --
@@ -29,15 +29,15 @@ begin
   select '00000000-0000-0000-0000-000000000000', u.id, 'authenticated', 'authenticated', u.email,
          crypt('Demo-Cucina-2026', gen_salt('bf')), now(),
          '{"provider":"email","providers":["email"]}', '{}', now(), now(), '', '', '', ''
-  from (values (v_admin, 'chef@demo.scadenzachef.test'),
-               (v_staff, 'staff@demo.scadenzachef.test')) as u(id, email);
+  from (values (v_admin, 'chef@demo.easyfinds.test'),
+               (v_staff, 'staff@demo.easyfinds.test')) as u(id, email);
 
   insert into auth.identities (id, user_id, provider_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
   select gen_random_uuid(), u.id, u.id::text,
          jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
          'email', now(), now(), now()
-  from (values (v_admin, 'chef@demo.scadenzachef.test'),
-               (v_staff, 'staff@demo.scadenzachef.test')) as u(id, email);
+  from (values (v_admin, 'chef@demo.easyfinds.test'),
+               (v_staff, 'staff@demo.easyfinds.test')) as u(id, email);
 
   -- locale, impostazioni, profili
   insert into public.locali (id, nome, codice_invito) values (v_locale, 'Trattoria Demo', 'TRATT2');

@@ -35,7 +35,7 @@ npx supabase db push
 ## Dati di esempio (solo sviluppo)
 
 Incolla `seed.sql` nello SQL Editor ed esegui. Crea il locale "Trattoria Demo" con due utenti
-(`chef@demo.scadenzachef.test` Admin, `staff@demo.scadenzachef.test` Staff, password `Demo-Cucina-2026`)
+(`chef@demo.easyfinds.test` Admin, `staff@demo.easyfinds.test` Staff, password `Demo-Cucina-2026`)
 e ~24 prodotti con scadenze relative a oggi, in tutti gli stati del semaforo. Si può rieseguire.
 **Non eseguirlo su un database con dati veri**: crea utenti con password nota.
 

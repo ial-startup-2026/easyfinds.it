@@ -1,4 +1,4 @@
--- ScadenzaChef — sicurezza: privilegi minimi + Row Level Security.
+-- easyfinds.it — sicurezza: privilegi minimi + Row Level Security.
 -- Regola base: ogni utente vede e modifica solo i dati del proprio locale.
 -- Le scritture che toccano più tabelle (carico, scarico, ingresso nel locale) passano da funzioni
 -- SECURITY DEFINER (migrazione successiva), non da INSERT/UPDATE diretti.

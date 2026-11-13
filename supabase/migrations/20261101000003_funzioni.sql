@@ -1,4 +1,4 @@
--- ScadenzaChef — funzioni (RPC) chiamabili dal client.
+-- easyfinds.it — funzioni (RPC) chiamabili dal client.
 -- Tutte SECURITY DEFINER con search_path vuoto: verificano da sole utente, locale e ruolo.
 -- Gli errori sono messaggi brevi (es. 'codice_non_valido') che l'app traduce in italiano.
 -- Le funzioni di scrittura sono idempotenti tramite client_uuid: la coda offline può rinviare

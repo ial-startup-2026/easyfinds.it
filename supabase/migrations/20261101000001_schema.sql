@@ -1,4 +1,4 @@
--- ScadenzaChef — schema dati.
+-- easyfinds.it — schema dati.
 -- Le liste di valori (allergeni, posizioni, categorie, motivi, unità) devono coincidere con
 -- src/lib/costanti/*.ts: un test (src/lib/db/migrazioni.test.ts) lo verifica.
 

@@ -11,7 +11,7 @@ export type PreferenzeScan = {
 
 export const PREFERENZE_DEFAULT: PreferenzeScan = { posizione: "cella_frigo", categoria: "altro", continua: false };
 
-const CHIAVE = "scadenzachef:scansione";
+const CHIAVE = "easyfinds:scansione";
 
 /** Legge le preferenze da testo salvato, scartando valori non validi (dati vecchi o manomessi). */
 export function analizzaPreferenze(testo: string | null): PreferenzeScan {
