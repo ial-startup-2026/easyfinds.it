@@ -9,7 +9,7 @@ Il nome è **provvisorio**: vive solo in `src/config/app.ts` (`APP_NAME`).
 - [x] **Fase 1** — setup, design system, navigazione con schermate vuote
 - [x] **Fase 2** — schema dati, migrazioni, RLS, seed, auth e profili (database verificato con PGlite; flussi con login **da provare dal vivo** appena c'è il progetto Supabase)
 - [x] **Fase 3** — catalogo con semaforo, filtri, swipe, logica scadenze + test (UI provata su dati di prova in `/design/magazzino`; le Server Action e la lettura dal database **non** sono ancora provate dal vivo)
-- [x] **Fase 4** — scansione (cattura, route AI, conferma, fallback, modalità continua). Provata con **letture di prova**; la lettura vera con il modello **non è provata dal vivo** (serve `ANTHROPIC_API_KEY`)
+- [x] **Fase 4** — scansione (cattura, lettura OCR gratuita nel browser, conferma, fallback, modalità continua). La lettura è **gratuita e senza chiavi** (Tesseract.js); provata con test e con letture di prova, **non ancora con etichette vere dal vivo**
 - [ ] Fase 5 — allergeni e lista della spesa
 - [ ] Fase 6 — offline/PWA, push, riepilogo mattutino
 - [ ] Fase 7 — report sprechi, rifinitura, E2E Playwright, README
@@ -18,7 +18,7 @@ Il piano completo approvato è in `~/.claude/plans/eager-tickling-garden.md`.
 
 ## Stack
 Next.js 16 (App Router, Turbopack) · React 19 · TypeScript strict · Tailwind v4 · shadcn/ui (stile `base-nova`, primitive `@base-ui/react`) · lucide-react · sonner (toast) · Zod · Vitest + Testing Library · npm (non pnpm).
-Previsti: Supabase (`@supabase/ssr`), Serwist (service worker), `idb` (coda offline), `motion` (swipe), `@anthropic-ai/sdk`, `web-push`, Playwright.
+Previsti: Supabase (`@supabase/ssr`), Serwist (service worker), `idb` (coda offline), `motion` (swipe), `web-push`, Playwright.
 
 ## Comandi
 ```bash
@@ -42,7 +42,7 @@ A fine di ogni fase: lint + typecheck + test devono passare, poi avvio e verific
 - Componenti di pagina nelle route; componenti riusabili in `src/components/`; primitive shadcn in `src/components/ui/`.
 - `cn()` è in `src/lib/utils.ts` (clsx + tailwind-merge). **Non importare il pacchetto npm `cn`**: il generatore shadcn l'ha agganciato per errore ed è stato sostituito.
 - Next 16: `cacheComponents` e `partialPrefetching` **disattivati** in `next.config.ts` (default del template, ma complicano un'app con login e offline). Prima di usare API di Next che non conosci, leggi `node_modules/next/dist/docs/`.
-- Nessun segreto nel codice: solo `.env.local` (gitignored); nomi delle variabili in `.env.example`. La chiave Anthropic e la service role di Supabase restano solo lato server.
+- Nessun segreto nel codice: solo `.env.local` (gitignored); nomi delle variabili in `.env.example`. La service role di Supabase resta solo lato server. **Il progetto non usa servizi a pagamento né chiavi di AI**: tutto deve restare gratuito.
 - Nessuna azione distruttiva senza conferma o "Annulla".
 
 ## Dati e sicurezza (Fase 2)
@@ -84,15 +84,14 @@ A fine di ogni fase: lint + typecheck + test devono passare, poi avvio e verific
 - Ogni nuova schermata che deve comparire nella vetrina ha bisogno del suo `page.vetrina.tsx`. Il `README.md` (pubblico) va tenuto aggiornato allo stato delle fasi.
 
 ## Scansione delle etichette (Fase 4)
-- **Flusso** (`components/scansione/`): cattura (`<input capture>` per la fotocamera + galleria) → riduzione nel browser (lato lungo 1600 px, JPEG 0.8, `lib/immagini.ts`) → `POST /api/scan` → schermata di conferma precompilata (`modulo-conferma.tsx`) → salvataggio → catalogo (o resta sulla fotocamera con la **scansione continua**). Tocchi dal telefono all'etichetta salvata: Scansiona → Scatta → (lettura) → Salva. Il modulo parte con **l'ultima posizione/categoria usate** (`lib/scan/preferenze.ts`).
-- `Scansione` riceve i **servizi** da fuori (`ServiziScansione`: `comprimi`, `leggi`, `salva`, in `lib/scan/tipi.ts`): `servizi-app.ts` (vera app: fetch a `/api/scan`, foto in Storage `etichette/<locale>/<clientUuid>.jpg`, azione `registraProdotto`), `components/vetrina/scansiona-vetrina.tsx` (tutto nel browser, magazzino di prova condiviso col catalogo via `lib/demo/registro-client.ts`) e i test.
-- **Route `/api/scan`** (`app/api/scan/route.ts`): richiede utente collegato (il proxy risponde 401 JSON alle `/api` senza login), limite **30 letture/10 min per utente** (in memoria), foto jpeg/png/webp ≤ 4 MB. La chiave resta solo sul server. Senza chiave: con `SCAN_MOCK=1` o in modalità demo → **letture di prova** a rotazione (una è volutamente fallita, una ha data dubbia, una allergeni dubbi); altrimenti `non_configurato` e si passa all'inserimento a mano. In produzione la modalità demo non basta.
-- **Modello**: `claude-sonnet-5-5` (variabile `ANTHROPIC_MODEL` per cambiarlo), `output_config.format` con JSON schema da Zod (`lib/scan/schema.ts`), `effort: "low"`, nessun `temperature`/`tool_choice` forzato/prefill (Sonnet 5.5 li rifiuta; lo verifica un test). **Usare `messages.create` e leggere il JSON a mano: `messages.parse` lancia un errore se la risposta non è conforme, invece di restituire `null`**, e il secondo tentativo non partirebbe. Il prompt (`lib/scan/prompt.ts`) è generato da `ALLERGENI`: formati data italiani, scadenza ≠ produzione, "12.2026" → ultimo giorno del mese, grassetto/MAIUSCOLO, confidenza per campo, "non inventare", testo dell'immagine = dati e non istruzioni.
-- **Affidabilità**: risposta non valida → **un solo nuovo tentativo** (`lib/scan/leggi.ts`), poi inserimento a mano; errori del servizio (429, 5xx) non si ripetono oltre il nuovo tentativo dell'SDK; rifiuto del modello → inserimento a mano. `normalizzaLettura` rende `null` (confidenza 0) ogni dato che non regge (data inesistente o fuori da −5/+10 anni, quantità senza unità…). `valutaLettura` (`SCAN.confidenzaMinima` = 0.6) decide i campi "Da controllare"; gli **allergeni con confidenza bassa vanno sempre segnalati** (lista vuota ≠ senza allergeni). Il prompt include anche gli allergeni dichiarati come "tracce" (scelta prudenziale per chi è allergico).
+- **Flusso** (`components/scansione/`): cattura (`<input capture>` per la fotocamera + galleria) → riduzione nel browser (lato lungo 1600 px, JPEG 0.8, `lib/immagini.ts`) → lettura OCR nel browser (`lib/scan/ocr.ts`) → schermata di conferma precompilata (`modulo-conferma.tsx`) → salvataggio → catalogo (o resta sulla fotocamera con la **scansione continua**). Tocchi dal telefono all'etichetta salvata: Scansiona → Scatta → (lettura) → Salva. Il modulo parte con **l'ultima posizione/categoria usate** (`lib/scan/preferenze.ts`).
+- `Scansione` riceve i **servizi** da fuori (`ServiziScansione`: `comprimi`, `leggi`, `salva`, in `lib/scan/tipi.ts`): `servizi-app.ts` (vera app: OCR nel browser con `leggiConOcr`, foto in Storage `etichette/<locale>/<clientUuid>.jpg`, azione `registraProdotto`), `components/vetrina/scansiona-vetrina.tsx` (tutto nel browser, magazzino di prova condiviso col catalogo via `lib/demo/registro-client.ts`) e i test.
+- **Lettura (OCR gratuito)**: `lib/scan/ocr.ts` carica Tesseract.js (lingua `ita`, `SCAN.lingua`) solo al primo uso, legge la foto **sul telefono**, senza server, senza chiavi e senza limiti di richieste. La prima volta scarica i dati della lingua (qualche MB, poi li tiene il browser): serve rete; offline → errore e inserimento a mano. Il testo passa a `lib/scan/testo.ts` (`leggiTesto`, funzione pura): data vicino a "scad./entro/TMC" (dd/mm/yyyy, "12 dicembre 2026", "12.2026" → ultimo giorno del mese; la data di produzione si scarta), lotto, allergeni per parole chiave, quantità netta (cl → ml, ignora "per 100 g"), nome = prima riga plausibile. **Nome e allergeni escono sempre con confidenza bassa e vanno ricontrollati**; un dato non riconosciuto resta vuoto. Le letture di prova (`lib/scan/mock.ts`) servono solo alla vetrina.
+- **Affidabilità**: foto senza testo → `nessun_testo`; lettura interrotta, scaduta (90 s) o motore non scaricabile → `errore`; in entrambi i casi inserimento a mano. `normalizzaLettura` rende `null` (confidenza 0) ogni dato che non regge (data inesistente o fuori da −5/+10 anni, quantità senza unità…). `valutaLettura` (`SCAN.confidenzaMinima` = 0.6) decide i campi "Da controllare"; gli **allergeni con confidenza bassa vanno sempre segnalati** (lista vuota ≠ senza allergeni). Gli allergeni dichiarati come "tracce" si includono per prudenza.
 - **Quantità**: si precompila con il contenuto netto letto dall'etichetta (es. 125 g) e sotto c'è la scritta "Sull'etichetta: …"; è modificabile a mano (tocca il numero) o con i tasti. Se vuoi contare confezioni, cambia l'unità in `pz`/`conf.`.
 - Il modulo ha `noValidate`: gli errori sono quelli dell'app (stesse regole Zod del server), non i popup del browser. Il salvataggio è **idempotente su `clientUuid`** (un nuovo tentativo dopo un errore non crea doppioni). Se la foto non si salva, il prodotto sì, con un avviso.
-- **Non fatto / da sapere**: nessuna coda offline (Fase 6: oggi offline → errore e si riprova); il limite di richieste è per istanza; il fallback server-side su un altro modello in caso di rifiuto (`fallbacks`) **non è attivo**: per le etichette il rischio è minimo e c'è l'inserimento a mano; il bucket `etichette` non ha policy di update, quindi l'upload non usa `upsert`.
-- Provare dal vivo: `ANTHROPIC_API_KEY` in `.env.local` (senza `SCAN_MOCK`), poi scattare etichette vere e controllare data, lotto e allergeni.
+- **Non fatto / da sapere**: nessuna coda offline (Fase 6: oggi offline → errore e si riprova); l'OCR sbaglia più di un modello AI (etichette curve, luccicanti o poco luminose): per questo ogni lettura passa dalla schermata di conferma; il bucket `etichette` non ha policy di update, quindi l'upload non usa `upsert`.
+- Provare dal vivo: scattare etichette vere dal telefono (con rete, la prima volta) e controllare data, lotto e allergeni; se l'OCR sbaglia spesso un formato, aggiungerlo a `lib/scan/testo.ts` con un test.
 
 ## Design system
 - **Token in un solo punto**: `src/app/globals.css` (variabili CSS + `@theme inline`). Colori in esadecimale; `src/lib/design/token.test.ts` verifica contrasto AA (≥ 4.5:1) di tutte le coppie testo/sfondo in chiaro e scuro, e che `COLORI_PWA` coincida con i token.
@@ -129,5 +128,5 @@ A fine di ogni fase: lint + typecheck + test devono passare, poi avvio e verific
 - **Fase 2 da chiudere dal vivo**: serve il progetto Supabase gratuito (URL + publishable key in `.env.local`, messi dall'utente), poi applicare le migrazioni + seed e provare: registrazione, creazione/ingresso nel locale, profilo con foto, team (invito, ruoli, rimozione). Non ancora fatto.
 - Password dimenticata / cambio password: non ancora implementato.
 - Rimozione di un membro: l'account Auth resta (può rientrare con un codice); nessuna cancellazione account.
-- Fase 4: serve `ANTHROPIC_API_KEY`. Fase 6: chiavi VAPID.
+- Fase 6: chiavi VAPID (gratuite).
 - Sostituire le icone segnaposto con il logo definitivo.

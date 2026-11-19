@@ -1,12 +1,12 @@
 import { SCAN } from "@/config/app";
 import { registraProdotto } from "@/app/scansiona/azioni";
 import { ridimensionaImmagine } from "@/lib/immagini";
-import { esitoDaRisposta, segnaleConTempoMassimo } from "@/lib/scan/risposta";
+import { leggiConOcr } from "@/lib/scan/ocr";
 import type { ServiziScansione } from "@/lib/scan/tipi";
 import { creaClientBrowser } from "@/lib/supabase/client";
 
 /**
- * Servizi della vera app: la foto va al server (/api/scan) che la fa leggere, la foto dell'etichetta
+ * Servizi della vera app: la foto si legge nel browser (OCR gratuito), la foto dell'etichetta
  * si archivia in Storage e il prodotto si registra con una Server Action.
  * In modalità demo non c'è archivio: la foto non si salva.
  */
@@ -14,20 +14,7 @@ export function creaServiziApp(localeId: string, demo: boolean): ServiziScansion
   return {
     comprimi: (file) => ridimensionaImmagine(file, { latoMax: SCAN.latoMaxPx, qualita: SCAN.qualitaJpeg }),
 
-    async leggi(foto, segnale) {
-      try {
-        const corpo = new FormData();
-        corpo.append("immagine", foto, "etichetta.jpg");
-        const risposta = await fetch("/api/scan", {
-          method: "POST",
-          body: corpo,
-          signal: segnaleConTempoMassimo(segnale, SCAN.timeoutMs),
-        });
-        return esitoDaRisposta(await risposta.json().catch(() => null));
-      } catch {
-        return { ok: false, motivo: "errore" };
-      }
-    },
+    leggi: (foto, segnale) => leggiConOcr(foto, segnale),
 
     async salva(dati, foto) {
       let fotoPath: string | null = null;

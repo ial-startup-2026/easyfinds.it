@@ -4,7 +4,7 @@ import { aggiungiGiorni, dataOggi } from "@/lib/scadenze/stato-scadenza";
 import type { Lettura } from "./tipi";
 
 /**
- * Forma che chiediamo al modello (output strutturato). Volutamente semplice: vincoli come
+ * Forma grezza di una lettura (prima di normalizzarla). Volutamente semplice: vincoli come
  * "data valida" o "numero positivo" si controllano dopo, in `normalizzaLettura`.
  */
 export const schemaModello = z.object({
@@ -33,7 +33,7 @@ const pulisci = (testo: string | null, max: number) => {
 };
 
 /**
- * Rende affidabile quello che dice il modello: testi ripuliti, data esistente e plausibile,
+ * Rende affidabile quello che ha letto l'OCR: testi ripuliti, data esistente e plausibile,
  * quantità positiva con la sua unità. Un dato che non regge diventa `null` con confidenza 0:
  * meglio chiedere a chi usa l'app che salvare un valore sbagliato.
  */
@@ -82,8 +82,3 @@ export function normalizzaLettura(grezza: RispostaModello, adesso: Date): Lettur
   };
 }
 
-/** Controlla e normalizza la risposta del modello; `null` se non rispetta lo schema. */
-export function leggiRispostaModello(grezza: unknown, adesso: Date): Lettura | null {
-  const esito = schemaModello.safeParse(grezza);
-  return esito.success ? normalizzaLettura(esito.data, adesso) : null;
-}

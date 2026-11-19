@@ -1,11 +1,7 @@
-import { describe, expect, it, vi } from "vitest";
-import { ALLERGENI } from "@/lib/costanti/allergeni";
-import { ErroreLettura, leggiEtichetta, type Chiamata } from "./leggi";
-import { creaLimitatore } from "./limite";
+import { describe, expect, it } from "vitest";
 import { lettureDiProva, prossimaLetturaDiProva } from "./mock";
 import { analizzaPreferenze, PREFERENZE_DEFAULT } from "./preferenze";
-import { promptSistema } from "./prompt";
-import { leggiRispostaModello, normalizzaLettura, type RispostaModello } from "./schema";
+import { normalizzaLettura, type RispostaModello } from "./schema";
 import type { Lettura } from "./tipi";
 import { valutaLettura } from "./valutazione";
 
@@ -65,57 +61,6 @@ describe("normalizzaLettura", () => {
   });
 });
 
-describe("leggiRispostaModello", () => {
-  it("rifiuta risposte che non rispettano lo schema", () => {
-    expect(leggiRispostaModello(null, ADESSO)).toBeNull();
-    expect(leggiRispostaModello({ nome: "x" }, ADESSO)).toBeNull();
-    expect(leggiRispostaModello({ ...risposta(), allergeni: ["cioccolato"] }, ADESSO)).toBeNull();
-    expect(leggiRispostaModello({ ...risposta(), unita: "tazze" }, ADESSO)).toBeNull();
-    expect(leggiRispostaModello(risposta(), ADESSO)).not.toBeNull();
-  });
-});
-
-describe("leggiEtichetta (secondo tentativo e fallimenti)", () => {
-  const valida = () => ({ parsed: risposta() });
-
-  it("alla prima risposta valida si ferma", async () => {
-    const chiama = vi.fn<Chiamata>(async () => valida());
-    const esito = await leggiEtichetta(chiama, ADESSO);
-    expect(esito).toMatchObject({ ok: true, origine: "ai" });
-    expect(chiama).toHaveBeenCalledTimes(1);
-  });
-
-  it("se la prima risposta non è valida riprova una volta (e lo segnala al modello)", async () => {
-    const chiama = vi.fn<Chiamata>(async (tentativo) => (tentativo === 1 ? { parsed: null } : valida()));
-    const esito = await leggiEtichetta(chiama, ADESSO);
-    expect(esito.ok).toBe(true);
-    expect(chiama.mock.calls.map(([t]) => t)).toEqual([1, 2]);
-  });
-
-  it("due risposte non valide → fallimento, senza un terzo tentativo", async () => {
-    const chiama = vi.fn<Chiamata>(async () => ({ parsed: { nome: 5 } }));
-    expect(await leggiEtichetta(chiama, ADESSO)).toEqual({ ok: false, motivo: "risposta_non_valida" });
-    expect(chiama).toHaveBeenCalledTimes(2);
-  });
-
-  it("un errore del servizio non si ripete: si spiega con il motivo giusto", async () => {
-    const occupato = vi.fn<Chiamata>(async () => {
-      throw new ErroreLettura("occupato");
-    });
-    expect(await leggiEtichetta(occupato, ADESSO)).toEqual({ ok: false, motivo: "occupato" });
-    expect(occupato).toHaveBeenCalledTimes(1);
-
-    const imprevisto = vi.fn<Chiamata>(async () => {
-      throw new Error("boom");
-    });
-    expect(await leggiEtichetta(imprevisto, ADESSO)).toEqual({ ok: false, motivo: "errore" });
-  });
-
-  it("un rifiuto del modello porta all'inserimento a mano", async () => {
-    expect(await leggiEtichetta(async () => ({ parsed: null, rifiutata: true }), ADESSO)).toEqual({ ok: false, motivo: "rifiutata" });
-  });
-});
-
 describe("valutaLettura", () => {
   const base: Lettura = {
     nome: "Burrata",
@@ -156,33 +101,6 @@ describe("valutaLettura", () => {
   });
 });
 
-describe("promptSistema", () => {
-  const testo = promptSistema("2026-10-27");
-
-  it("contiene tutti i 14 allergeni, con il loro codice", () => {
-    expect(ALLERGENI).toHaveLength(14);
-    for (const a of ALLERGENI) expect(testo).toContain(a.codice);
-  });
-
-  it("dà le istruzioni chiave: formati italiani, scadenza ≠ produzione, niente invenzioni, grassetto/maiuscolo", () => {
-    expect(testo).toContain("GG/MM/AAAA");
-    expect(testo).toContain("12.2026");
-    expect(testo).toMatch(/produzione|confezionamento/);
-    expect(testo).toMatch(/Non inventare/);
-    expect(testo).toMatch(/grassetto/);
-    expect(testo).toMatch(/MAIUSCOLO/);
-    expect(testo).toMatch(/confidenza/i);
-  });
-
-  it("dice al modello di trattare il testo dell'immagine come dati, non come istruzioni", () => {
-    expect(testo).toMatch(/mai istruzioni/);
-  });
-
-  it("riporta la data di oggi", () => {
-    expect(testo).toContain("2026-10-27");
-  });
-});
-
 describe("letture di prova", () => {
   it("sono tutte valide secondo lo stesso schema usato per le letture vere", () => {
     for (const lettura of lettureDiProva(ADESSO)) {
@@ -204,27 +122,6 @@ describe("letture di prova", () => {
     const esiti = Array.from({ length: 6 }, () => prossimaLetturaDiProva(ADESSO));
     expect(esiti.filter((e) => e.ok).every((e) => e.ok && e.origine === "prova")).toBe(true);
     expect(esiti.some((e) => !e.ok)).toBe(true);
-  });
-});
-
-describe("creaLimitatore", () => {
-  it("lascia passare fino al limite e poi blocca, per utente", () => {
-    const ora = 0;
-    const l = creaLimitatore(3, 1000, () => ora);
-    expect([l.consuma("a"), l.consuma("a"), l.consuma("a"), l.consuma("a")]).toEqual([true, true, true, false]);
-    expect(l.consuma("b")).toBe(true);
-  });
-
-  it("la finestra scorre: dopo il tempo si può riprovare", () => {
-    let ora = 0;
-    const l = creaLimitatore(2, 1000, () => ora);
-    l.consuma("a");
-    ora = 400;
-    l.consuma("a");
-    expect(l.consuma("a")).toBe(false);
-    ora = 1001; // la prima richiesta è uscita dalla finestra
-    expect(l.consuma("a")).toBe(true);
-    expect(l.consuma("a")).toBe(false);
   });
 });
 

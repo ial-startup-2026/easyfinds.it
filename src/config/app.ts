@@ -16,21 +16,16 @@ export const COLORI_PWA = {
   scuro: { tema: "#0d0d11", sfondo: "#0d0d11" },
 } as const;
 
-/** Lettura delle etichette: la foto si riduce nel browser prima dell'invio. */
+/** Lettura delle etichette: la foto si riduce e si legge nel browser (OCR gratuito, nessun server). */
 export const SCAN = {
   /** Lato lungo massimo dell'immagine inviata, in pixel. */
   latoMaxPx: 1600,
   qualitaJpeg: 0.8,
   /** Sotto questa confidenza (0-1) un campo va ricontrollato a mano. */
   confidenzaMinima: 0.6,
-  /** Dimensione massima accettata dal server, in byte. */
-  maxByte: 4_000_000,
-  /** Richieste di lettura per utente in ogni finestra di tempo. */
-  maxRichieste: 30,
-  finestraMs: 10 * 60_000,
-  /** Attesa massima per una lettura, in millisecondi. */
-  timeoutMs: 30_000,
+  /** Lingua dell'OCR (dati scaricati dal browser la prima volta). */
+  lingua: "ita",
+  /** Attesa massima per una lettura, in millisecondi: la prima volta include il download dei dati della lingua. */
+  timeoutMs: 90_000,
 } as const;
 
-/** Modello che legge le etichette; si può cambiare con la variabile ANTHROPIC_MODEL. */
-export const MODELLO_SCAN_DEFAULT = "claude-sonnet-5-5";

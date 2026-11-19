@@ -19,28 +19,16 @@ export type Lettura = {
 };
 
 export type MotivoFallimento =
-  | "non_configurato" // manca la chiave del servizio di lettura
-  | "non_autenticato"
-  | "immagine_non_valida"
-  | "troppe_richieste" // limite per utente
-  | "occupato" // il servizio ha detto di riprovare tra poco
-  | "risposta_non_valida" // la risposta non rispettava lo schema, anche al secondo tentativo
-  | "rifiutata"
-  | "errore";
+  | "nessun_testo" // la foto non contiene testo leggibile
+  | "errore"; // lettura interrotta, scaduta, o motore non scaricabile (offline?)
 
 export type EsitoLettura =
-  | { ok: true; lettura: Lettura; origine: "ai" | "prova" }
+  | { ok: true; lettura: Lettura; origine: "ocr" | "prova" }
   | { ok: false; motivo: MotivoFallimento };
 
 /** Cosa dire a chi usa l'app quando la lettura non riesce. */
 export const MESSAGGI_FALLIMENTO: Record<MotivoFallimento, string> = {
-  non_configurato: "La lettura automatica non è attiva.",
-  non_autenticato: "Devi accedere per leggere le etichette.",
-  immagine_non_valida: "La foto non è valida o è troppo grande.",
-  troppe_richieste: "Hai fatto molte letture di fila: aspetta qualche minuto.",
-  occupato: "Il servizio di lettura è occupato.",
-  risposta_non_valida: "Non sono riuscito a leggere l'etichetta.",
-  rifiutata: "Non sono riuscito a leggere questa foto.",
+  nessun_testo: "Non vedo del testo leggibile nella foto.",
   errore: "Non sono riuscito a leggere l'etichetta (problema di connessione?).",
 };
 

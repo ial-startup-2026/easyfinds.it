@@ -20,7 +20,7 @@ vi.mock("next/link", () => ({
 
 const buona: EsitoLettura = {
   ok: true,
-  origine: "ai",
+  origine: "ocr",
   lettura: {
     nome: "Burrata di Andria",
     data_scadenza: "2026-11-02",
@@ -34,11 +34,11 @@ const buona: EsitoLettura = {
 
 const dubbia: EsitoLettura = {
   ok: true,
-  origine: "ai",
+  origine: "ocr",
   lettura: { ...buona.lettura, confidenza: { ...buona.lettura.confidenza, data_scadenza: 0.4, allergeni: 0.3, globale: 0.6 } },
 };
 
-const fallita: EsitoLettura = { ok: false, motivo: "risposta_non_valida" };
+const fallita: EsitoLettura = { ok: false, motivo: "nessun_testo" };
 
 let servizi: ServiziScansione;
 let rispondi: (e: EsitoLettura) => void;
@@ -132,7 +132,7 @@ describe("Scansione", () => {
     await scatta(container);
     await leggiCon(fallita);
 
-    expect(screen.getByText(/Non sono riuscito a leggere l'etichetta\. Compila i dati a mano/)).toBeInTheDocument();
+    expect(screen.getByText(/Non vedo del testo leggibile nella foto\. Compila i dati a mano/)).toBeInTheDocument();
     expect(screen.getByLabelText("Nome")).toHaveValue("");
     expect(screen.getByLabelText("Scadenza")).toHaveAttribute("type", "date");
 
@@ -142,11 +142,11 @@ describe("Scansione", () => {
     expect(servizi.salva).toHaveBeenCalledWith(expect.objectContaining({ nome: "Ricotta", data_scadenza: "2026-11-20", quantita: 1, unita: "pz" }), expect.anything());
   });
 
-  it("dice se il servizio di lettura non è attivo", async () => {
+  it("dice se la lettura è interrotta (per esempio senza connessione)", async () => {
     const { container } = render(<Scansione servizi={servizi} />);
     await scatta(container);
-    await leggiCon({ ok: false, motivo: "non_configurato" });
-    expect(screen.getByText(/La lettura automatica non è attiva\. Compila i dati a mano/)).toBeInTheDocument();
+    await leggiCon({ ok: false, motivo: "errore" });
+    expect(screen.getByText(/problema di connessione\?\)\. Compila i dati a mano/)).toBeInTheDocument();
   });
 
   it("non salva senza nome o senza scadenza, e lo dice", async () => {

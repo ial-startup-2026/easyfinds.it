@@ -76,5 +76,5 @@ let contatore = 0;
 export function prossimaLetturaDiProva(adesso: Date): EsitoLettura {
   const elenco = lettureDiProva(adesso);
   const lettura = elenco[contatore++ % elenco.length];
-  return lettura ? { ok: true, lettura, origine: "prova" } : { ok: false, motivo: "risposta_non_valida" };
+  return lettura ? { ok: true, lettura, origine: "prova" } : { ok: false, motivo: "errore" };
 }
